@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# OS / editor cruft
+.DS_Store
+*.swp
+
+# Env files
+.env
+.env.local
+
+# Never allow service-account / admin credential files into this repo
+*firebase-admin*.json
+*serviceAccount*.json
+*-firebase-adminsdk-*.json

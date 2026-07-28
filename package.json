@@ -1,0 +1,23 @@
+{
+  "name": "paychangu-sdk",
+  "version": "1.0.0",
+  "description": "Tiny client SDK for the PayChangu support-payment Cloudflare Worker (paychangu-payment-gateway.edisontaimu9.workers.dev)",
+  "type": "module",
+  "main": "index.cjs",
+  "module": "index.js",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js",
+      "require": "./index.cjs"
+    }
+  },
+  "files": [
+    "index.js",
+    "index.cjs",
+    "index.d.ts"
+  ],
+  "keywords": ["paychangu", "payments", "malawi", "cloudflare-workers"],
+  "license": "MIT"
+}
