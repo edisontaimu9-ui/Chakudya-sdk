@@ -68,10 +68,7 @@ export declare class ChakudyaClient {
   exchange: CrudResource;
   renal: CrudResource;
   formulas: CrudResource;
-  manufacturers: CrudResource;
-  products: CrudResource;
   packaged: PackagedResource;
-  nutrition: { get(productId: string | number): Promise<any> };
   rag: RagResource;
   memory: MemoryResource;
 

@@ -1,7 +1,7 @@
 {
-  "name": "paychangu-sdk",
+  "name": "chakudya-sdk",
   "version": "1.0.0",
-  "description": "Tiny client SDK for the PayChangu support-payment Cloudflare Worker (paychangu-payment-gateway.edisontaimu9.workers.dev)",
+  "description": "Zero-dependency JS client for the Chakudya Nutrition Registry (CNR) Cloudflare Worker API (chakudya-api.edisontaimu9.workers.dev).",
   "type": "module",
   "main": "index.cjs",
   "module": "index.js",
@@ -16,8 +16,15 @@
   "files": [
     "index.js",
     "index.cjs",
-    "index.d.ts"
+    "index.d.ts",
+    "chakudya-client.js"
   ],
-  "keywords": ["paychangu", "payments", "malawi", "cloudflare-workers"],
+  "author": "Edison Taimu",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/edisontaimu9-ui/Chakudya-sdk.git"
+  },
+  "homepage": "https://github.com/edisontaimu9-ui/Chakudya-sdk#readme",
+  "keywords": ["chakudya", "nutrition", "malawi", "food", "cloudflare-workers"],
   "license": "MIT"
 }

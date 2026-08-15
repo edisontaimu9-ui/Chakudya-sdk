@@ -37,8 +37,6 @@ class ChakudyaClient {
     this.exchange = this._crud("exchange");
     this.renal = this._crud("renal");
     this.formulas = this._crud("formulas");
-    this.manufacturers = this._crud("manufacturers", { supportsPut: false });
-    this.products = this._crud("products");
 
     this.packaged = {
       list: (params) => this._get("/packaged", params),
@@ -46,10 +44,6 @@ class ChakudyaClient {
       scan: (images) => this._post("/packaged/scan", { images }),
       update: (id, payload) => this._patch(`/packaged/${id}`, payload),
       remove: (id) => this._delete(`/packaged/${id}`),
-    };
-
-    this.nutrition = {
-      get: (productId) => this._get("/nutrition", { product_id: productId }),
     };
 
     this.rag = {

@@ -9,8 +9,13 @@
  *   <script src="chakudya-client.js"></script>
  *   const cnr = new ChakudyaClient(...);   // -> window.ChakudyaClient
  *
- * Also exports via module.exports for anything Node/bundler-based
- * that does `const { ChakudyaClient } = require("./chakudya-client.js")`.
+ * This file targets the browser global (window.ChakudyaClient) — for
+ * Node/bundler `require()`, use index.cjs instead (same API). Because this
+ * package sets "type": "module" for index.js's real ESM syntax, plain .js
+ * files here (including this one) get parsed as ES modules by Node's
+ * module loader, so `require("./chakudya-client.js")` won't reliably
+ * export anything even though the code below also sets module.exports as
+ * a defensive fallback.
  *
  * Usage:
  *   const cnr = new ChakudyaClient("https://chakudya-api.edisontaimu9.workers.dev");
@@ -57,8 +62,6 @@ class ChakudyaClient {
     this.exchange = this._crud("exchange");
     this.renal = this._crud("renal");
     this.formulas = this._crud("formulas");
-    this.manufacturers = this._crud("manufacturers", { supportsPut: false });
-    this.products = this._crud("products");
 
     this.packaged = {
       list: (params) => this._get("/packaged", params),
@@ -66,10 +69,6 @@ class ChakudyaClient {
       scan: (images) => this._post("/packaged/scan", { images }),
       update: (id, payload) => this._patch(`/packaged/${id}`, payload),
       remove: (id) => this._delete(`/packaged/${id}`),
-    };
-
-    this.nutrition = {
-      get: (productId) => this._get("/nutrition", { product_id: productId }),
     };
 
     this.rag = {

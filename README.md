@@ -78,10 +78,7 @@ Mirrors every route in the Worker:
 | `exchange` | `list`, `get`, `create`*, `update`*, `remove`*, `replace`* |
 | `renal` | `list`, `get`, `create`*, `update`*, `remove`*, `replace`* |
 | `formulas` | `list`, `get`, `create`*, `update`*, `remove`*, `replace`* |
-| `manufacturers` | `list`, `get`, `create`*, `update`*, `remove`* (no `replace`) |
-| `products` | `list`, `get`, `create`*, `update`*, `remove`*, `replace`* |
 | `packaged` | `list`, `submit`, `scan`, `update`*, `remove`* |
-| `nutrition` | `get(productId)` |
 | `rag` | `retrieve(query, opts)`, `ingest(payload)`* |
 | `memory` | `write(sessionId, content, opts)`, `recall(sessionId, query, opts)`, `consolidate(sessionId)`* |
 
