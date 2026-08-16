@@ -20,8 +20,16 @@ export interface CrudResource<T = any> {
   replace?(id: string | number, payload: Partial<T>): Promise<T>;
 }
 
+export interface FoodCategory {
+  id: string;
+  name: string;
+  description: string | null;
+}
+
 export interface FoodsResource extends CrudResource {
-  lookup(params: { q: string; [key: string]: any }): Promise<any>;
+  lookup(params: { q?: string; barcode?: string; [key: string]: any }): Promise<any>;
+  autocomplete(q: string, options?: { maxResults?: number }): Promise<string[]>;
+  categories(): Promise<FoodCategory[]>;
 }
 
 export interface PackagedResource {

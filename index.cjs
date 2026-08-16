@@ -1,116 +1,155 @@
 /**
- * paychangu-sdk (CommonJS build)
- * Same API as index.js, exported via module.exports for require() consumers.
+ * CommonJS entry point for chakudya-sdk.
+ * Same API as index.js (the ESM build), exported via module.exports for
+ * require() consumers:
+ *
+ *   const { chakudya, ChakudyaClient } = require("chakudya-sdk");
+ *   const foods = await chakudya.foods.list({ search: "nsima" });
+ *
+ * For admin (write) calls or a different deployment, construct your own client:
+ *
+ *   const { ChakudyaClient } = require("chakudya-sdk");
+ *   const admin = new ChakudyaClient(DEFAULT_BASE_URL, { adminKey: "..." });
  */
 
-const DEFAULT_BASE_URL = "https://paychangu-payment-gateway.edisontaimu9.workers.dev";
-
-class PayChanguError extends Error {
-  constructor(message, { status, details } = {}) {
+class ChakudyaApiError extends Error {
+  constructor(message, status, body) {
     super(message);
-    this.name = "PayChanguError";
+    this.name = "ChakudyaApiError";
     this.status = status;
-    this.details = details;
+    this.body = body;
   }
 }
 
-class PayChanguClient {
-  constructor(options = {}) {
-    this.baseUrl = (options.baseUrl || DEFAULT_BASE_URL).replace(/\/+$/, "");
-    this._fetch = options.fetchImpl || globalThis.fetch;
-    if (!this._fetch) {
-      throw new Error(
-        "No fetch implementation found. Pass { fetchImpl } or run on Node 18+/a browser."
-      );
-    }
-  }
+class ChakudyaClient {
+  constructor(baseUrl, opts = {}) {
+    if (!baseUrl) throw new Error("ChakudyaClient requires a baseUrl");
+    this.baseUrl = baseUrl.replace(/\/$/, "");
+    this.adminKey = opts.adminKey || null;
+    this.timeoutMs = opts.timeoutMs || 20000;
 
-  async initiate({ amount, currency = "MWK", firstName, lastName, email, message, returnUrl } = {}) {
-    if (!amount || Number(amount) <= 0) {
-      throw new PayChanguError("A positive amount is required");
-    }
-
-    const res = await this._fetch(`${this.baseUrl}/api/support/initiate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        amount,
-        currency,
-        first_name: firstName,
-        last_name: lastName,
-        email,
-        message,
-        return_url: returnUrl,
-      }),
+    this.foods = this._crud("foods", {
+      extra: {
+        lookup: (params) => this._get("/foods/lookup", params),
+        autocomplete: (q, { maxResults = 4 } = {}) => this._get("/foods/autocomplete", { q, max_results: maxResults }),
+        categories: () => this._get("/foods/categories"),
+      },
     });
+    this.exchange = this._crud("exchange");
+    this.renal = this._crud("renal");
+    this.formulas = this._crud("formulas");
 
-    const data = await this._safeJson(res);
+    this.packaged = {
+      list: (params) => this._get("/packaged", params),
+      submit: (payload) => this._post("/packaged/submit", payload),
+      scan: (images) => this._post("/packaged/scan", { images }),
+      update: (id, payload) => this._patch(`/packaged/${id}`, payload),
+      remove: (id) => this._delete(`/packaged/${id}`),
+    };
 
-    if (!res.ok || data.status !== "success") {
-      throw new PayChanguError(data.message || "Failed to initiate transaction", {
-        status: res.status,
-        details: data.details,
-      });
-    }
+    this.rag = {
+      retrieve: (query, { context = "both", topK = 5 } = {}) =>
+        this._post("/rag/retrieve", { query, context, top_k: topK }),
+      ingest: (payload) => this._post("/rag/ingest", payload), // admin
+    };
 
-    return data;
+    this.memory = {
+      write: (sessionId, content, { kind = "fact", patientLabel } = {}) =>
+        this._post("/memory/write", {
+          session_id: sessionId,
+          content,
+          kind,
+          patient_label: patientLabel,
+        }),
+      recall: (sessionId, query, { topK = 5 } = {}) =>
+        this._post("/memory/recall", { session_id: sessionId, query, top_k: topK }),
+      consolidate: (sessionId) => this._post("/memory/consolidate", { session_id: sessionId }), // admin
+    };
   }
 
-  async payAndRedirect(params) {
-    if (typeof window === "undefined") {
-      throw new Error("payAndRedirect() only works in a browser environment");
-    }
-    const { checkout_url } = await this.initiate(params);
-    window.location.href = checkout_url;
+  root() {
+    return this._get("/");
   }
 
-  async verify(txRef) {
-    if (!txRef) {
-      throw new PayChanguError("tx_ref is required");
+  _crud(resource, { supportsPut = true, extra = {} } = {}) {
+    const base = `/${resource}`;
+    const api = {
+      list: (params) => this._get(base, params),
+      get: (id) => this._get(`${base}/${id}`),
+      create: (payload) => this._post(base, payload),
+      update: (id, payload) => this._patch(`${base}/${id}`, payload),
+      remove: (id) => this._delete(`${base}/${id}`),
+      ...extra,
+    };
+    if (supportsPut) {
+      api.replace = (id, payload) => this._put(`${base}/${id}`, payload);
     }
-
-    const res = await this._fetch(
-      `${this.baseUrl}/api/support/verify/${encodeURIComponent(txRef)}`
-    );
-    const data = await this._safeJson(res);
-
-    if (!res.ok) {
-      throw new PayChanguError(data.message || "Failed to verify transaction", {
-        status: res.status,
-        details: data,
-      });
-    }
-
-    return data;
+    return api;
   }
 
-  async waitForCompletion(txRef, { intervalMs = 2000, timeoutMs = 60000 } = {}) {
-    const start = Date.now();
-    const finalStates = new Set(["success", "failed"]);
-
-    while (true) {
-      const data = await this.verify(txRef);
-      const status = data?.data?.status || data?.status;
-      if (finalStates.has(status)) return data;
-      if (Date.now() - start > timeoutMs) {
-        throw new PayChanguError("Timed out waiting for transaction to complete", {
-          details: data,
-        });
+  _url(path, params) {
+    const url = new URL(this.baseUrl + path);
+    if (params) {
+      for (const [k, v] of Object.entries(params)) {
+        if (v !== undefined && v !== null && v !== "") url.searchParams.set(k, v);
       }
-      await new Promise((r) => setTimeout(r, intervalMs));
+    }
+    return url.toString();
+  }
+
+  async _request(method, path, { params, payload } = {}) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
+
+    const headers = { "Content-Type": "application/json" };
+    if (this.adminKey) headers.Authorization = `Bearer ${this.adminKey}`;
+
+    try {
+      const res = await fetch(this._url(path, params), {
+        method,
+        headers,
+        body: payload !== undefined ? JSON.stringify(payload) : undefined,
+        signal: controller.signal,
+      });
+
+      const body = await res.json().catch(() => null);
+
+      if (!res.ok || body?.status === "error") {
+        throw new ChakudyaApiError(
+          body?.message || `Request failed (${res.status})`,
+          res.status,
+          body
+        );
+      }
+
+      return body?.data !== undefined ? body.data : body;
+    } finally {
+      clearTimeout(timeout);
     }
   }
 
-  async _safeJson(res) {
-    try {
-      return await res.json();
-    } catch {
-      return {};
-    }
+  _get(path, params) {
+    return this._request("GET", path, { params });
+  }
+  _post(path, payload) {
+    return this._request("POST", path, { payload });
+  }
+  _put(path, payload) {
+    return this._request("PUT", path, { payload });
+  }
+  _patch(path, payload) {
+    return this._request("PATCH", path, { payload });
+  }
+  _delete(path) {
+    return this._request("DELETE", path);
   }
 }
 
-const paychangu = new PayChanguClient();
+const DEFAULT_BASE_URL = "https://chakudya-api.edisontaimu9.workers.dev";
 
-module.exports = { PayChanguClient, PayChanguError, paychangu, DEFAULT_BASE_URL };
-module.exports.default = paychangu;
+// Default instance for quick reads. Admin/write calls need their own
+// `new ChakudyaClient(DEFAULT_BASE_URL, { adminKey })` instance instead.
+const chakudya = new ChakudyaClient(DEFAULT_BASE_URL);
+
+module.exports = { ChakudyaClient, ChakudyaApiError, chakudya, DEFAULT_BASE_URL };
+module.exports.default = chakudya;

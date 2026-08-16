@@ -58,7 +58,13 @@ class ChakudyaClient {
     this.timeoutMs = opts.timeoutMs || 20000;
 
     // Generic CRUD-ish resources — same shape as the Worker's routePolicy.
-    this.foods = this._crud("foods", { extra: { lookup: (params) => this._get("/foods/lookup", params) } });
+    this.foods = this._crud("foods", {
+      extra: {
+        lookup: (params) => this._get("/foods/lookup", params),
+        autocomplete: (q, { maxResults = 4 } = {}) => this._get("/foods/autocomplete", { q, max_results: maxResults }),
+        categories: () => this._get("/foods/categories"),
+      },
+    });
     this.exchange = this._crud("exchange");
     this.renal = this._crud("renal");
     this.formulas = this._crud("formulas");

@@ -74,7 +74,7 @@ Mirrors every route in the Worker:
 
 | Resource | Methods |
 |---|---|
-| `foods` | `list`, `get`, `create`*, `update`*, `remove`*, `replace`*, `lookup` |
+| `foods` | `list`, `get`, `create`*, `update`*, `remove`*, `replace`*, `lookup`, `autocomplete`, `categories` |
 | `exchange` | `list`, `get`, `create`*, `update`*, `remove`*, `replace`* |
 | `renal` | `list`, `get`, `create`*, `update`*, `remove`*, `replace`* |
 | `formulas` | `list`, `get`, `create`*, `update`*, `remove`*, `replace`* |
@@ -83,6 +83,19 @@ Mirrors every route in the Worker:
 | `memory` | `write(sessionId, content, opts)`, `recall(sessionId, query, opts)`, `consolidate(sessionId)`* |
 
 `*` = admin route, requires `adminKey`.
+
+`foods.autocomplete(q, { maxResults })` and `foods.categories()` wrap
+FatSecret's Premier-exclusive endpoints — they return `503` if the
+deployed Worker doesn't have a Premier/Premier Free FatSecret key
+configured:
+
+```js
+const suggestions = await chakudya.foods.autocomplete("chic", { maxResults: 5 });
+// -> ["chicken", "chicken breast", "chicken salad", ...]
+
+const categories = await chakudya.foods.categories();
+// -> [{ id: "1", name: "Beans & Legumes", description: "..." }, ...]
+```
 
 See the [chakudya-api README](https://github.com/edisontaimu9-ui/chakudya-api)
 for full request/response shapes, rate limits, and caching behavior — this
