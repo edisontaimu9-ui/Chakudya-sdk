@@ -1,7 +1,7 @@
 {
   "name": "chakudya-sdk",
   "version": "1.1.0",
-  "description": "Zero-dependency JS client for the Chakudya Nutrition Registry (CNR) Cloudflare Worker API (chakudya-api.edisontaimu9.workers.dev).",
+  "description": "Zero-dependency JS client for the Chakudya Nutrition Registry (CNR) Cloudflare Worker API (api.chakudya.xyz).",
   "type": "module",
   "main": "index.cjs",
   "module": "index.js",

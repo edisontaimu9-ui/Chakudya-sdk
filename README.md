@@ -6,7 +6,7 @@ Zero-dependency JS client for the **Chakudya Nutrition Registry (CNR)**
 Cloudflare Worker API:
 
 ```
-https://chakudya-api.edisontaimu9.workers.dev
+https://api.chakudya.xyz
 ```
 
 Extracted from the [chakudya-api](https://github.com/edisontaimu9-ui/chakudya-api)
@@ -38,7 +38,7 @@ publish this repo to npm under your own name and `npm install` it.
 ```html
 <script src="chakudya-client.js"></script>
 <script>
-  const cnr = new ChakudyaClient("https://chakudya-api.edisontaimu9.workers.dev");
+  const cnr = new ChakudyaClient("https://api.chakudya.xyz");
 
   cnr.foods.list({ search: "nsima", limit: 10 }).then(console.log);
   cnr.rag.retrieve("high potassium foods", { topK: 5 }).then(console.log);

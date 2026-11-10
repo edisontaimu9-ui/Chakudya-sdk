@@ -289,7 +289,7 @@ class ChakudyaClient {
 '''.replace("__ROUTES__", routes_json)
 
 DEFAULTS = '''
-const DEFAULT_BASE_URL = "https://chakudya-api.edisontaimu9.workers.dev";
+const DEFAULT_BASE_URL = "https://api.chakudya.xyz";
 
 // Default instance. Most routes need an API key, so for real use build your
 // own: `new ChakudyaClient(DEFAULT_BASE_URL, { apiKey })`.
