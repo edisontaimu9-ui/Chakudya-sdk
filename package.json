@@ -1,6 +1,6 @@
 {
   "name": "chakudya-sdk",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Zero-dependency JS client for the Chakudya Nutrition Registry (CNR) Cloudflare Worker API (chakudya-api.edisontaimu9.workers.dev).",
   "type": "module",
   "main": "index.cjs",
@@ -24,7 +24,7 @@
     "type": "git",
     "url": "https://github.com/edisontaimu9-ui/Chakudya-sdk.git"
   },
-  "homepage": "https://github.com/edisontaimu9-ui/Chakudya-sdk#readme",
+  "homepage": "https://sdk.chakudya.xyz",
   "keywords": ["chakudya", "nutrition", "malawi", "food", "cloudflare-workers"],
   "license": "MIT"
 }
