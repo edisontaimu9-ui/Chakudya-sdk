@@ -13,6 +13,9 @@
       "require": "./index.cjs"
     }
   },
+  "scripts": {
+    "smoke": "node scripts/smoke.mjs"
+  },
   "files": [
     "index.js",
     "index.cjs",
